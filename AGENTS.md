@@ -37,7 +37,7 @@ ai-company/
 - Hatsuon：`product/Hatsuon/`——`no1_pronunciation_app`（spec + impl）
 - LiquidGlassHeaderTemplate：`product/LiquidGlassHeaderTemplate/`——`no1_liquid_glass_header`（spec 空殼 + impl）
 - UndergroundRemake：`product/UndergroundRemake/`——`no1_concept`（僅 spec，概念階段）
-- IGotThis：`product/IGotThis/`——`no1_issue_system`（spec + design + impl，開源自架免費，spec 齊備、design 與 impl 骨架階段）、`no2_official_website`（僅 impl，開源官網含下載連結與 Buy Me a Coffee 按鈕）
+- IGotThis：`product/IGotThis/`——`no1_issue_system`（spec + design + impl，開源自架免費，spec 齊備、impl 地基層與引擎層完成，應用層局部完成，design 隨 impl 主題同步定案）、`no2_official_website`（僅 impl，開源官網含下載連結與 Buy Me a Coffee 按鈕，Hosting 未拍板尚未部署）
 - SocialRadar：`product/SocialRadar/`——`no1_content_monitor`（spec + impl，跨平台社群巡邏分類推播機器人，首個平台 Threads）
 
 ## 財務路徑
