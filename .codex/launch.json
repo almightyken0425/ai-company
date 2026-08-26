@@ -8,11 +8,11 @@
       "runtimeArgs": [
         "-m",
         "http.server",
-        "8765",
+        "8770",
         "--directory",
         "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project"
       ],
-      "port": 8765,
+      "port": 8770,
       "metroPort": 8081
     },
     {
