@@ -13,10 +13,14 @@ try:
 except Exception:
     print("PASS"); sys.exit(0)
 ti = d.get("tool_input") or {}
-cmd = ti.get("command") or ""
-cwd = (d.get("cwd") or "").replace("\\", "/").lower()
+cmd = ti.get("command") or ti.get("cmd") or ""
+event_cwd = (d.get("cwd") or "").replace("\\", "/")
+workdir = (ti.get("workdir") or "").replace("\\", "/")
+if workdir and not re.match(r"^(?:[A-Za-z]:)?/", workdir):
+    workdir = event_cwd.rstrip("/") + "/" + workdir
+cwd = (workdir or event_cwd).lower()
 build = re.search(r"(xcodebuild|pod install|react-native run-ios|npm run ios|yarn ios)", cmd)
-if build and "ai-company-worktrees/" in cwd:
+if build and "/ai-company-worktrees/" in "/" + cwd.lstrip("/"):
     print("BLOCK")
     print(cmd.splitlines()[0][:200] if cmd else "")
     print(cwd)
@@ -33,10 +37,10 @@ case "$VERDICT" in
   command: $CMD_LINE
   cwd:     $CWD_LINE
 
-依「Port 協作規範」（ai-company CLAUDE.md），build 一律集中在主 git 跑，
-且應由 /sim-review 自動觸發。請：
-  1. 打 /sim-review，Claude 會自動判別「只動 JS / 動到原生」並執行對應流程
-  2. 或 cd 到對應主 git（product/<產品>/no5_product_development/<module>/）後再執行
+依「Port 協作規範」（ai-company CLAUDE.md），build 由 /sim-review
+集中到主 git 執行。請勿直接切到主 git 手動 build。請：
+  1. 打 /sim-review，Codex 會判別「只動 JS / 動到原生」並執行對應流程
+  2. 若由 game-test 進入，先確認測試範圍，再讓 game-test 委派 sim-review
 EOF
     exit 2
     ;;
