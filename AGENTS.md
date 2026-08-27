@@ -54,6 +54,7 @@ ai-company/
 - **新增產品 / 新增 module SOP：** 依 `products_registry.md` 末段變更 SOP 走檢核器迴圈——改宣告、跑 `layer-manifest-test.sh`、照 FAIL 清單補實體與文件、再檢核至全綠
 - **Spec 層職責邊界：** spec 文件的 MVC 分層政策與跨層禁止項由 spec_writer skill（含 `cross_layer_boundary_policy.md`）承載；各 spec module git 的 AGENTS.md 為入口
 - **已知邊界：** 本機 hook 僅提示層，無法保證遠端 merge 真的配對發生；要硬保證走 CI 或遠端 pre-merge 檢查
+- **測試責任分工：** Quality git 維護測試定義、能力需求與核心標記；執行證據只留目前 session；Release git 維護候選版本 manifest
 - **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`，集中驗證完整工作區 29 組配對與相容入口
 
 ## 動工前置
@@ -61,8 +62,8 @@ ai-company/
 凡動註冊產品的 spec / design / impl / quality / release 路徑，首次修改前四步全做完：
 
 1. **跑 decision_framework_router 答上游四問**（屬哪個產品 / 哪一層 / 哪個 module / 需求根因與 Product Map 對應項存在嗎）
-2. **依四問結果確認要動的層**——單層或跨多層都明確列出
-3. **每個要動的層 git 各自 `git worktree add` 建同名 feat branch**——名稱沿用 plan 內已定的（全域「Plan 產出規範」）；跨層完全一致、同步建立，不允許「只開 impl、之後再補」
+2. **依四問結果確認要動的層**——列出 Quality owner、Quality 影響與 Debug 能力影響；單層或跨多層都明確列出
+3. **實際要修改的層各自 `git worktree add` 建同名 feat branch**——名稱沿用 plan 內已定。跨層完全一致並同步建立；Quality 影響為 `none` 時不開 Quality worktree
 4. **動工前最後檢查 cwd**——`pwd` 在 `~/Doc/ai-company-worktrees/<topic>/<layer>-<module>` 下、`git branch --show-current` 是 `feat/<topic>` 不是 main
 
 「已知道要改哪個檔」「只是小改」「先動再說」都不是跳步理由；跳過事後必須 `git reset --hard` 重開，不如一開始做對。框架的價值是確認層沒選錯；同名同步建立的價值是 commit 配對與 merge 才能對齊。
@@ -135,8 +136,8 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 
 原獨立節「iOS 自驗策略」已併入本節，hook 訊息引該名時指的就是這裡。
 
-- simulator 驗證一律 `/sim-review` 一鍵全自動：判別只動 JS 或動到原生、切 Metro、build、還原，流程細節與排隊規則見 `~/.agents/skills/sim-review/SKILL.md`
-- `/sim-review` 觸發以外，Codex 不主動啟、不主動切 Metro、不動 simulator——低 RAM 環境並行 Metro 會壓死系統；這兩個資源平時由使用者手動管理
+- simulator 驗證由 `/sim-review` 一鍵執行。另一入口是 `game-test` 確認範圍後委派 `sim-review`。切 Metro、build、還原與排隊規則見 `~/.agents/skills/sim-review/SKILL.md`
+- 上述兩種入口以外，Codex 不主動啟、不主動切 Metro、不動 simulator。Metro 維持單一 8081；低 RAM 環境依序執行
 - **禁止 worktree 內 build**（`npm run ios`、`xcodebuild`、`pod install`）——各自 build 會在 DerivedData 累積 cache 爆磁碟；build 集中主 git、由 `/sim-review` 觸發。全域 iOS worktree build guard 在 PreToolUse 機械攔截
 - 完成改動、預期使用者想上 simulator 看時，回報「驗證位置」段引導打 `/sim-review`（見全域「驗證回報規範」內「回報訊息：simulator 走 /sim-review」）
 
