@@ -17,6 +17,7 @@
 完整規則見全域「跨機 git 協作規範」「修改流程規範」與本檔「多產品多層 git 協作規範」「動工前置」「Worktree 使用慣例」「Port 協作規範」。本段只是濃縮自檢。
 
 ## 頂層目錄結構
+
 ```
 ai-company/
 ├── company/     公司層級定位與產品索引
@@ -24,6 +25,21 @@ ai-company/
 ├── project/     各產品專案管理文件
 └── finance/     公司層級股權與財務管理
 ```
+
+## 命名規則
+
+- GitHub repo、主要 checkout 根目錄與 worktree topic 使用 `lowercase-kebab-case`。
+- remote repo slug 與主要 checkout 根目錄名稱必須一致。
+- 一般內容目錄與檔案使用 `lowercase_snake_case`。
+- 有順序的內容使用 `noN_lowercase_snake_case`，序號不補零。
+- `no0_` 保留給入口或總覽，`no99_` 保留給封存內容。
+- `project/` 下的 Design stage 目錄固定使用兩位數 `NN_lowercase_snake_case`。
+- 產品實體目錄與 remote repo 使用 kebab-case，產品顯示名稱在正文保留品牌大小寫。
+- module id 與多層 git 內的 module 目錄使用 `noN_lowercase_snake_case`。
+- worktree 的 module 末層目錄將 module id 轉成 kebab-case，例如 `design-no2-accounting-app`。
+- `no5_product_development/` 內的實際程式碼依語言與 framework 慣例命名，不套用內容檔名規則。
+- `AGENTS.md`、`CLAUDE.md`、`README.md`、`SKILL.md`、`.claude/` 與 `.github/` 保留平台約定名稱。
+- vendor、generated 與上游同步資產保留來源名稱，避免更新時失去對應。
 
 ## 公司文件路徑
 - 公司 context：`company/context.md`
@@ -33,16 +49,16 @@ ai-company/
 
 各產品採決策框架 noN 分層、依 module 拆分（spec `no3_product_specs/`、design `no4_product_designs/`、impl `no5_product_development/`、quality `no6_product_quality/`、release `no7_product_release/`，各層下接 `<module>/`）。層模型唯一真相是 `layer_manifest.yaml`；配對與屬性（remote、private、空殼、sub_mapping）權威在 `~/.agents/skills/decision_framework_router/products_registry.md`，本節只列路由入口。
 
-- SuSuGiGi：`product/SuSuGiGi/`——`no2_accounting_app`（spec + design + impl + quality + release 五層全）、`no1_user_management`（僅 spec，plan-only）、`no3_cloud_functions`（spec + impl，後端無 UI）、`no4_support_site`（僅 impl，內容即真相）
-- Hatsuon：`product/Hatsuon/`——`no1_pronunciation_app`（spec + impl）
-- LiquidGlassHeaderTemplate：`product/LiquidGlassHeaderTemplate/`——`no1_liquid_glass_header`（spec 空殼 + impl）
-- UndergroundRemake：`product/UndergroundRemake/`——`no1_concept`（僅 spec，概念階段）
-- IGotThis：`product/IGotThis/`——`no1_issue_system`（spec + design + impl，開源自架免費，spec 齊備、impl 地基層與引擎層完成，應用層局部完成，design 隨 impl 主題同步定案）、`no2_official_website`（僅 impl，開源官網含下載連結與 Buy Me a Coffee 按鈕，Hosting 未拍板尚未部署）
-- SocialRadar：`product/SocialRadar/`——`no1_content_monitor`（spec + impl，跨平台社群巡邏分類推播機器人，首個平台 Threads）
+- SuSuGiGi：`product/susugigi/`——`no2_accounting_app`（spec + design + impl + quality + release 五層全）、`no1_user_management`（僅 spec，plan-only）、`no3_cloud_functions`（spec + impl，後端無 UI）、`no4_support_site`（僅 impl，內容即真相）
+- Hatsuon：`product/hatsuon/`——`no1_pronunciation_app`（spec + impl）
+- LiquidGlassHeaderTemplate：`product/liquid-glass-header-template/`——`no1_liquid_glass_header`（spec 空殼 + impl）
+- UndergroundRemake：`product/underground-remake/`——`no1_concept`（僅 spec，概念階段）
+- IGotThis：`product/i-got-this/`——`no1_issue_system`（spec + design + impl，開源自架免費，spec 齊備、impl 地基層與引擎層完成，應用層局部完成，design 隨 impl 主題同步定案）、`no2_official_website`（僅 impl，開源官網含下載連結與 Buy Me a Coffee 按鈕，Hosting 未拍板尚未部署）
+- SocialRadar：`product/social-radar/`——`no1_content_monitor`（spec + impl，跨平台社群巡邏分類推播機器人，首個平台 Threads）
 
 ## 財務路徑
 - 股權原則：`finance/no1_principles/`
-- 各產品貢獻帳本：`finance/no2_ledgers/<ProductName>/`
+- 各產品貢獻帳本：`finance/no2_ledgers/<product-slug>/`
 - 公司股權操作管理：`finance/no3_operation/`
 
 ## 多產品多層 git 協作規範
@@ -64,7 +80,7 @@ ai-company/
 1. **跑 decision_framework_router 答上游四問**（屬哪個產品 / 哪一層 / 哪個 module / 需求根因與 Product Map 對應項存在嗎）
 2. **依四問結果確認要動的層**——列出 Quality owner、Quality 影響與 Debug 能力影響；單層或跨多層都明確列出
 3. **實際要修改的層各自 `git worktree add` 建同名 feat branch**——名稱沿用 plan 內已定。跨層完全一致並同步建立；Quality 影響為 `none` 時不開 Quality worktree
-4. **動工前最後檢查 cwd**——`pwd` 在 `~/Doc/ai-company-worktrees/<topic>/<layer>-<module>` 下、`git branch --show-current` 是 `feat/<topic>` 不是 main
+4. **動工前最後檢查 cwd**——`pwd` 在 `~/Doc/ai-company-worktrees/<topic>/<layer>-<module-kebab>` 下、`git branch --show-current` 是 `feat/<topic>` 不是 main
 
 「已知道要改哪個檔」「只是小改」「先動再說」都不是跳步理由；跳過事後必須 `git reset --hard` 重開，不如一開始做對。框架的價值是確認層沒選錯；同名同步建立的價值是 commit 配對與 merge 才能對齊。
 
@@ -74,7 +90,9 @@ ai-company/
 
 ### 目錄與命名
 
-- worktree 集中在 `~/Doc/ai-company-worktrees/<topic>/`，末層目錄名兩形：module 層 git 用 `<layer>-<module>`（如 `spec-no2_accounting_app`）；頂層 Product git 用 `product-<產品名小寫>`（如 `product-susugigi`）
+- worktree 集中在 `~/Doc/ai-company-worktrees/<topic>/`，topic 使用 kebab-case
+- module 層 git 的末層目錄使用 `<layer>-<module-kebab>`，例如 `spec-no2-accounting-app`
+- 頂層 Product git 的末層目錄使用 `product-<product-slug>`，例如 `product-susugigi`
 - 末層目錄名是 hook 反查產品與層級的唯一錨點，改名須同步 `multi-tier-sync-guard.sh` 與 `branch-pairing-guard.sh` 的反查正則
 - 同主題跨多層 git 用完全相同的 branch 名稱
 - 開新 worktree 後、啟 server 前，為它 append launch.json entry（見「Port 協作規範」），否則 verify 看到的是原 git 內容
@@ -88,7 +106,7 @@ ai-company/
 **開工**——對每個要動的層 git，各層同步建立、branch 名相同：
 
 ```
-git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<module> -b feat/<topic> main
+git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<module-kebab> -b feat/<topic> main
 ```
 
 **改檔 + 靜態檢查**（lint / tsc / spec-term-audit）全在 worktree 內。

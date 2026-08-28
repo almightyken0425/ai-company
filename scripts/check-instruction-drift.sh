@@ -47,37 +47,37 @@ SUSUGIGI_TEMPLATE=$'# Claude 相容入口\n\n- 此檔只供跨工具相容。\n-
 
 EXPECTED_DIRS=(
   "."
-  "product/Hatsuon"
-  "product/Hatsuon/no3_product_specs/no1_pronunciation_app"
-  "product/Hatsuon/no5_product_development/no1_pronunciation_app"
-  "product/IGotThis"
-  "product/IGotThis/no3_product_specs/no1_issue_system"
-  "product/IGotThis/no4_product_designs/no1_issue_system"
-  "product/IGotThis/no5_product_development/no1_issue_system"
-  "product/LiquidGlassHeaderTemplate"
-  "product/LiquidGlassHeaderTemplate/no3_product_specs/no1_liquid_glass_header"
-  "product/LiquidGlassHeaderTemplate/no5_product_development/no1_liquid_glass_header"
-  "product/SocialRadar"
-  "product/SocialRadar/no3_product_specs/no1_content_monitor"
-  "product/SocialRadar/no5_product_development/no1_content_monitor"
-  "product/SuSuGiGi"
-  "product/SuSuGiGi/no2_product_planning/no2_product_map"
-  "product/SuSuGiGi/no3_product_specs/no1_user_management"
-  "product/SuSuGiGi/no3_product_specs/no2_accounting_app"
-  "product/SuSuGiGi/no3_product_specs/no3_cloud_functions"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project/10_foundations"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project/10_foundations/component_tokens"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project/10_foundations/visualizers"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project/15_fixtures"
-  "product/SuSuGiGi/no4_product_designs/no2_accounting_app/project/30_screens"
-  "product/SuSuGiGi/no5_product_development/no2_accounting_app"
-  "product/SuSuGiGi/no5_product_development/no3_cloud_functions"
-  "product/SuSuGiGi/no5_product_development/no4_support_site"
-  "product/SuSuGiGi/no6_product_quality/no2_accounting_app"
-  "product/SuSuGiGi/no7_product_release/no2_accounting_app"
-  "product/UndergroundRemake"
-  "product/UndergroundRemake/no3_product_specs/no1_concept"
+  "product/hatsuon"
+  "product/hatsuon/no3_product_specs/no1_pronunciation_app"
+  "product/hatsuon/no5_product_development/no1_pronunciation_app"
+  "product/i-got-this"
+  "product/i-got-this/no3_product_specs/no1_issue_system"
+  "product/i-got-this/no4_product_designs/no1_issue_system"
+  "product/i-got-this/no5_product_development/no1_issue_system"
+  "product/liquid-glass-header-template"
+  "product/liquid-glass-header-template/no3_product_specs/no1_liquid_glass_header"
+  "product/liquid-glass-header-template/no5_product_development/no1_liquid_glass_header"
+  "product/social-radar"
+  "product/social-radar/no3_product_specs/no1_content_monitor"
+  "product/social-radar/no5_product_development/no1_content_monitor"
+  "product/susugigi"
+  "product/susugigi/no2_product_planning/no2_product_map"
+  "product/susugigi/no3_product_specs/no1_user_management"
+  "product/susugigi/no3_product_specs/no2_accounting_app"
+  "product/susugigi/no3_product_specs/no3_cloud_functions"
+  "product/susugigi/no4_product_designs/no2_accounting_app"
+  "product/susugigi/no4_product_designs/no2_accounting_app/project/10_foundations"
+  "product/susugigi/no4_product_designs/no2_accounting_app/project/10_foundations/component_tokens"
+  "product/susugigi/no4_product_designs/no2_accounting_app/project/10_foundations/visualizers"
+  "product/susugigi/no4_product_designs/no2_accounting_app/project/15_fixtures"
+  "product/susugigi/no4_product_designs/no2_accounting_app/project/30_screens"
+  "product/susugigi/no5_product_development/no2_accounting_app"
+  "product/susugigi/no5_product_development/no3_cloud_functions"
+  "product/susugigi/no5_product_development/no4_support_site"
+  "product/susugigi/no6_product_quality/no2_accounting_app"
+  "product/susugigi/no7_product_release/no2_accounting_app"
+  "product/underground-remake"
+  "product/underground-remake/no3_product_specs/no1_concept"
 )
 
 EXPECTED_COUNT=32
@@ -112,7 +112,7 @@ file_matches_template() {
 
   if [[ "$relative_dir" == "." ]]; then
     expected=$ROOT_TEMPLATE
-  elif [[ "$relative_dir" == product/SuSuGiGi* ]]; then
+  elif [[ "$relative_dir" == product/susugigi* ]]; then
     expected=$SUSUGIGI_TEMPLATE
   else
     expected=$GENERIC_TEMPLATE
