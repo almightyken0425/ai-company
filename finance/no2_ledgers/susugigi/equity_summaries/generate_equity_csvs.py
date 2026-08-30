@@ -5,7 +5,7 @@ import os
 # Configuration: File Paths
 # ==========================================
 # Input File (Source of Truth — defined in project/susugigi)
-INPUT_FILE = os.path.join('..', '..', '..', '..', 'project', 'SuSuGiGi', 'no2_module_role_points.csv')
+INPUT_FILE = os.path.join('..', '..', '..', '..', 'project', 'susugigi', 'no2_module_role_points.csv')
 
 # Output Files
 OUTPUT_FILE_ROLE_SUMMARY = 'no4_3_equity_summary_by_role.csv'

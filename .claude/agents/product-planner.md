@@ -269,7 +269,7 @@ tools: Read, Glob, Grep, Write, Edit
 
 - 功能規格文件輸出至該產品的 no3_product_specs/<module>/ 目錄
 - 使用者旅程與產品定義文件輸出至 no1_product_initiation/
-- 開發計畫與版本規劃文件輸出至 `~/Doc/ai-company/project/<產品名>/no1_mvp_planning/`
+- 開發計畫與版本規劃文件輸出至 `~/Doc/ai-company/project/<product-slug>/no1_mvp_planning/`
 
 ---
 
