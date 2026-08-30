@@ -66,12 +66,12 @@ ai-company/
 骨架不變式（branch 同名、commit 同 subject+body、各層各自 `--no-ff` merge）與「Branch 涉及範圍」判準持在全域 AGENTS.md 同名節；本節承載其餘細則。
 
 - **git 拆分結構：** 每產品拆為頂層 Product git 與依 module 拆分的各層 git。層的編號、目錄名、git 邊界只在 `layer_manifest.yaml` 宣告；實例配對在 `products_registry.md`；兩者與衍生物的一致性由 `~/.codex/hooks/tests/layer-manifest-test.sh` 檢核
-- **頂層 Product git 承載：** 提案層、需求層、整合層 Product Map、Roadmap；專案管理文件在 ai-company 根 git 的 `project/<產品名>/`；另追蹤 `no99_archive/` 歸檔層，收納工作追蹤筆記、規格衝突報告、已廢案 spec 等非決策框架核心層檔案
+- **頂層 Product git 承載：** 提案層、需求層、整合層 Product Map、Roadmap；專案管理文件在 ai-company 根 git 的 `project/<product-slug>/`；另追蹤 `no99_archive/` 歸檔層，收納工作追蹤筆記、規格衝突報告、已廢案 spec 等非決策框架核心層檔案
 - **新增產品 / 新增 module SOP：** 依 `products_registry.md` 末段變更 SOP 走檢核器迴圈——改宣告、跑 `layer-manifest-test.sh`、照 FAIL 清單補實體與文件、再檢核至全綠
 - **Spec 層職責邊界：** spec 文件的 MVC 分層政策與跨層禁止項由 spec_writer skill（含 `cross_layer_boundary_policy.md`）承載；各 spec module git 的 AGENTS.md 為入口
 - **已知邊界：** 本機 hook 僅提示層，無法保證遠端 merge 真的配對發生；要硬保證走 CI 或遠端 pre-merge 檢查
 - **測試責任分工：** Quality git 維護測試定義、能力需求與核心標記；執行證據只留目前 session；Release git 維護候選版本 manifest
-- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`，集中驗證完整工作區 29 組配對與相容入口
+- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`，集中驗證完整工作區 33 組配對與相容入口
 
 ## 動工前置
 
