@@ -47,14 +47,26 @@ ai-company/
 
 ## 產品路徑
 
-各產品採決策框架 noN 分層、依 module 拆分（spec `no3_product_specs/`、design `no4_product_designs/`、impl `no5_product_development/`、quality `no6_product_quality/`、release `no7_product_release/`，各層下接 `<module>/`）。層模型唯一真相是 `layer_manifest.yaml`；配對與屬性（remote、private、空殼、sub_mapping）權威在 `~/.agents/skills/decision_framework_router/products_registry.md`，本節只列路由入口。
+- 產品決策流程僅用於任務實際指向的 ai-company 產品。
+- 目前目錄與需求、設計、規格等一般用語不單獨構成啟動條件。
+- 公司文件、財務維護、外部專案與控制工具維護不因位於 ai-company 目錄就套用產品流程。
+- 位於其他目錄或 worktree 的任務仍可指定 ai-company 產品為目標。
+- 明確屬於 ai-company 的新產品規劃可先使用 `decision_framework_router` 分析。
+- 尚未登錄不阻擋前期討論。
+- 只有任務包含建立產品或模組時才依註冊流程新增。
 
-- SuSuGiGi：`product/susugigi/`——`no2_accounting_app`（spec + design + impl + quality + release 五層全）、`no1_user_management`（僅 spec，plan-only）、`no3_cloud_functions`（spec + impl，後端無 UI）、`no4_support_site`（僅 impl，內容即真相）
-- Hatsuon：`product/hatsuon/`——`no1_pronunciation_app`（spec + impl）
-- LiquidGlassHeaderTemplate：`product/liquid-glass-header-template/`——`no1_liquid_glass_header`（spec 空殼 + impl）
-- UndergroundRemake：`product/underground-remake/`——`no1_concept`（僅 spec，概念階段）
-- IGotThis：`product/i-got-this/`——`no1_issue_system`（spec + design + impl，開源自架免費，spec 齊備、impl 地基層與引擎層完成，應用層局部完成，design 隨 impl 主題同步定案）、`no2_official_website`（僅 impl，開源官網含下載連結與 Buy Me a Coffee 按鈕，Hosting 未拍板尚未部署）
-- SocialRadar：`product/social-radar/`——`no1_content_monitor`（spec + impl，跨平台社群巡邏分類推播機器人，首個平台 Threads）
+| 查詢內容 | 資料來源 |
+| --- | --- |
+| 產品與模組身分、repo、形態引用與覆寫、Product Map 對應、品質責任 | `~/.agents/skills/decision_framework_router/products_registry.md` |
+| 層定義、目錄、Git 邊界與形態定義 | `~/.agents/skills/decision_framework_router/layer_manifest.yaml` |
+
+- 從註冊表的 `repo.path` 定位產品主 Git。
+- 依產品與模組的形態及覆寫取得有效層。
+- 模組層路徑由產品主 Git、層目錄與模組識別推導。
+- worktree 透過所屬主 Git 的 `git worktree list --porcelain` 核對。
+- 不依 worktree 目錄名或同名模組推定產品身分。
+- 確認產品目標後依 `decision_framework_router` 分流討論、唯讀檢查與修改前置。
+- 本節不保存產品名單、模組配置或開發進度。
 
 ## 財務路徑
 - 股權原則：`finance/no1_principles/`
@@ -93,7 +105,9 @@ ai-company/
 - worktree 集中在 `~/Doc/ai-company-worktrees/<topic>/`，topic 使用 kebab-case
 - module 層 git 的末層目錄使用 `<layer>-<module-kebab>`，例如 `spec-no2-accounting-app`
 - 頂層 Product git 的末層目錄使用 `product-<product-slug>`，例如 `product-susugigi`
-- 末層目錄名是 hook 反查產品與層級的唯一錨點，改名須同步 `multi-tier-sync-guard.sh` 與 `branch-pairing-guard.sh` 的反查正則
+- hook 仍使用末層目錄名協助定位。
+- 產品身分以註冊資料與所屬主 Git 的 worktree 清單為準。
+- 末層目錄改名須同步 `multi-tier-sync-guard.sh` 與 `branch-pairing-guard.sh` 的反查正則。
 - 同主題跨多層 git 用完全相同的 branch 名稱
 - 開新 worktree 後、啟 server 前，為它 append launch.json entry（見「Port 協作規範」），否則 verify 看到的是原 git 內容
 
@@ -161,12 +175,27 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 
 ## 盤點任務協作節奏
 
-涵蓋 `/game-over`、`/game-start`、跨 git 盤點、多 worktree 清理等掃整片任務。
-
-**第一輪必須掃完整，不分批。** 範圍最少含：
-
-- 所有頂層 git（`~/Doc/ai-company` 與底下產品 git）與所有 module 子 git（五層）
-- 所有 worktree。活躍根唯一：`~/Doc/ai-company-worktrees/`（兩層 `<topic>/<末層名>` 慣例，末層名依「Worktree 使用慣例」兩形；空殼 rmdir 只認此根）；遺留根 `~/Doc/.worktrees/`、`~/Doc/_worktrees/` 存在才順手掃。dirty 偵測靠 `git worktree list` 自報、與根路徑無關
+- 沿用任務已確認的產品、模組、Git 與 worktree 範圍。
+- 一般跨 Git 盤點與多 worktree 清理不預設擴大到其他產品。
+- 範圍不明時先查本次任務與註冊資料。
+- 仍有缺口時先釐清範圍。
+- 第一輪一次收齊已確認範圍的訊號。
+- 不分批回報或用全公司掃描代替範圍確認。
+- `/game-over`、`/game-start` 與使用者明確要求的全區盤點保留完整覆蓋。
+- 全區盤點在 ai-company 的最低範圍包含下列項目。
+    - ai-company 根 Git 與所有產品主 Git。
+    - 所有已註冊模組的有效層 Git。
+    - 搜尋範圍內實際存在但未登錄的 Git。
+    - 納入 Git 的所有 worktree。
+- 未登錄的 Git 列為待辨識項目。
+- 不依目錄位置推定為已註冊產品。
+- worktree 依各 Git 的 `git worktree list --porcelain` 列舉。
+- 活躍 worktree 根為 `~/Doc/ai-company-worktrees/`。
+- 目錄命名沿用本檔 Worktree 使用慣例。
+- 遺留根 `~/Doc/.worktrees/` 與 `~/Doc/_worktrees/` 存在時納入檢查。
+- 搜尋到的 worktree 仍須核對 Git 歸屬與本次範圍。
+- dirty 偵測不依賴 worktree 所在目錄。
+- 空殼目錄清理仍只認活躍 worktree 根。
 
 **請示節奏：** 全部訊號收齊、建議列完，才集中請示一次，不邊掃邊問；不可逆操作（worktree remove、branch delete、merge to main）歸入請示清單而非當下執行。
 
