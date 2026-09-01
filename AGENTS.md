@@ -81,7 +81,7 @@ ai-company/
 - **Spec 層職責邊界：** spec 文件的 MVC 分層政策與跨層禁止項由 spec_writer skill（含 `cross_layer_boundary_policy.md`）承載；各 spec module git 的 AGENTS.md 為入口
 - **已知邊界：** 本機 hook 僅提示層，無法保證遠端 merge 真的配對發生；要硬保證走 CI 或遠端 pre-merge 檢查
 - **測試責任分工：** Quality git 維護測試定義、能力需求與核心標記；執行證據只留目前 session；Release git 維護候選版本 manifest
-- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`，集中驗證完整工作區 33 組配對與相容入口
+- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`。檢查會驗證完整工作區 33 組配對，並掃描宣告的 instruction roots 與實際 Git roots，確認沒有專案層 Hook 設定或執行檔
 
 ## 動工前置
 
@@ -111,9 +111,11 @@ ai-company/
 - module 層 git 的末層目錄使用 `<layer>-<module-kebab>`，例如 `spec-no2-accounting-app`
 - 頂層 Product git 的末層目錄使用 `product-<product-slug>`，例如 `product-susugigi`
 - ai-company 根 Git 的末層目錄使用 `company`
-- hook 仍使用末層目錄名協助定位。
-- 產品身分以註冊資料與所屬主 Git 的 worktree 清單為準。
-- 末層目錄改名須同步 `multi-tier-sync-guard.sh` 與 `branch-pairing-guard.sh` 的反查正則。
+- 末層目錄名是人類閱讀與 launch entry 的慣例，不是 Hook 的產品身分依據。
+- Hook 執行檔只由全域控制層維護。專案不另存 `.codex` 或 `.claude` Hook。
+- 產品、module 與 layer 由 registry、layer manifest、Git remote 及 common dir 解析。需要區分 main 與 worktree instance 時再核對實體 repo root。
+- 公司、Product 與 module 主 checkout 的 Edit、Write、apply patch 及可辨識命令寫入會被阻擋。linked worktree 正常放行。產品歸屬不唯一時不猜測產品，已確認的正式主 checkout 仍受保護。
+- worktree 改名不需修改 Hook 正則。新增產品、module 或 layer 時只更新對應註冊來源與一致性測試。
 - 同主題跨多層 git 用完全相同的 branch 名稱
 - 開新 worktree 後、啟 server 前，為它 append launch.json entry（見「Port 協作規範」），否則 verify 看到的是原 git 內容
 
@@ -148,7 +150,7 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 凡有 design git 的產品，impl 寫 UI 時 token、component、screen layout 必須對齊 design——不擅自設值，先查 design 對應 token 與 component 結構再對應到 impl。適用範圍以產品註冊表內的 design repo 為準。
 
 - **範圍：** impl 的 `src/screens/**`、`src/components/**`、`src/theme/**`、`src/constants/theme.ts`（任何產品都套）；對應同 module design 的 `project/10_foundations/`（tokens）、`20_components/`（元件）、`30_screens/`（layout）。仲裁配對權威在 `products_registry.md`：design 仲裁、impl 跟進
-- **動作層面：** 動 impl UI 前必須先讀取同 module 對應 design 範圍任一檔。`~/.codex/hooks/lib/guards/design-impl-alignment.sh` 在 PreToolUse 攔截：同 session 已讀過放行；沒讀過擋下並明示要讀哪些路徑；design 目錄不存在自動放行
+- **動作層面：** 動 impl UI 前必須先以支援的唯讀命令，成功讀取同 module 對應 design 範圍任一檔。PreToolUse、原命令與 PostToolUse 共同建立成功證據。只有同 session、同產品、同 module 的證據可放行。命令失敗、只在文字或 transcript 提到路徑、不同 session 的讀取都不算。design repo 未註冊或不存在時不啟動本規則
 - **例外（極窄）：** 純邏輯修補不動視覺（useEffect、data fetching、handler 邏輯），設 `export CODEX_SKIP_DESIGN_GUARD=1` 繞過；Claude 相容 alias 為 `export CLAUDE_SKIP_DESIGN_GUARD=1`。該 session 後續全放行；判斷由執行者擔責、濫用會回到沒對齊的爆氣循環
 - **impeccable skill 接口：** 註冊產品的設計工作一律走 decision_framework_router 與該 module 的 design git，不用 impeccable；impeccable 只用於非註冊產品的 web / artifact 場景
 
@@ -163,6 +165,7 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 - `git worktree add` 完成後、啟任何 server 前，**必須** append entry；未加不許啟 server。分配 port = 現有最大 +1
 - `git worktree remove` 後**同步移除** entry；`/game-stop` 自動處理，手動 remove 自己記得
 - 回報訊息「驗證位置」的 server URL 必須對齊 entry port（銜接全域「驗證回報規範」），不允許報無對應的 port
+- server guard 以 registry 與 Git 身分確認產品範圍，再比對同一實體 repo instance 及其相對子目錄。HTTP server 只使用該 entry 的 `port`，Metro 只使用 `metroPort`。同類 port 重複登記、instance 不符或 port 不符都不放行
 
 ### 輕量 server（design canvas）
 
