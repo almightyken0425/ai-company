@@ -2,10 +2,14 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/project_hook_duplicate_scan.sh"
+
 WORKSPACE_ROOT="$HOME/Doc/ai-company"
+COMPANY_ROOT=""
 
 usage() {
-  printf 'Usage: %s [--workspace-root PATH]\n' "$(basename -- "$0")"
+  printf 'Usage: %s [--workspace-root PATH] [--company-root PATH]\n' "$(basename -- "$0")"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -20,6 +24,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --workspace-root=*)
       WORKSPACE_ROOT=${1#*=}
+      shift
+      ;;
+    --company-root)
+      [[ $# -ge 2 ]] || {
+        printf 'FAIL: --company-root requires a path\n' >&2
+        exit 2
+      }
+      COMPANY_ROOT=$2
+      shift 2
+      ;;
+    --company-root=*)
+      COMPANY_ROOT=${1#*=}
       shift
       ;;
     --help|-h)
@@ -40,6 +56,12 @@ done
 }
 
 WORKSPACE_ROOT="$(CDPATH= cd -- "$WORKSPACE_ROOT" && pwd)"
+[[ -n "$COMPANY_ROOT" ]] || COMPANY_ROOT=$WORKSPACE_ROOT
+[[ -d "$COMPANY_ROOT" ]] || {
+  printf 'FAIL: company root does not exist: %s\n' "$COMPANY_ROOT" >&2
+  exit 2
+}
+COMPANY_ROOT="$(CDPATH= cd -- "$COMPANY_ROOT" && pwd)"
 
 ROOT_TEMPLATE=$'# Claude Code 相容入口\n\n@AGENTS.md\n'
 GENERIC_TEMPLATE=$'# Claude Code 相容入口\n\n- `AGENTS.md` 是本目錄的規則真相\n- 動工前完整讀取 `AGENTS.md`\n- 父層 `AGENTS.md` 仍持續適用\n- 本檔不得重複產品規則\n'
@@ -152,6 +174,33 @@ discover_instruction_files() {
     \( -type f \( -name AGENTS.md -o -name CLAUDE.md \) -print \)
 }
 
+discover_repository_roots() {
+  find "$WORKSPACE_ROOT" \
+    \( -type d \( \
+      -name node_modules -o \
+      -name Pods -o \
+      -name vendor -o \
+      -name .build -o \
+      -name build -o \
+      -name dist -o \
+      -name coverage -o \
+      -name .next -o \
+      -name .expo -o \
+      -name .gradle -o \
+      -name .yarn -o \
+      -name .pnpm-store -o \
+      -name .venv -o \
+      -name venv -o \
+      -name target -o \
+      -name DerivedData -o \
+      -name ai-company-worktrees -o \
+      -name worktrees -o \
+      -name .worktrees -o \
+      -name _worktrees \
+    \) -prune \) -o \
+    \( -name .git \( -type d -o -type f -o -type l \) -print -prune \)
+}
+
 FOUND_DIRS=()
 while IFS= read -r relative_dir; do
   FOUND_DIRS+=("$relative_dir")
@@ -174,7 +223,7 @@ done
 
 for expected_dir in "${EXPECTED_DIRS[@]}"; do
   if [[ "$expected_dir" == "." ]]; then
-    absolute_dir=$WORKSPACE_ROOT
+    absolute_dir=$COMPANY_ROOT
   else
     absolute_dir=$WORKSPACE_ROOT/$expected_dir
   fi
@@ -202,9 +251,55 @@ if [[ ${#FOUND_DIRS[@]} -ne $EXPECTED_COUNT ]]; then
   record_failure "found ${#FOUND_DIRS[@]} instruction directories, expected $EXPECTED_COUNT"
 fi
 
+SCAN_ROOTS=()
+SCAN_LABELS=()
+SCAN_KEYS=("__scan_sentinel__")
+
+add_hook_scan_root() {
+  local root=$1
+  local label=$2
+  local key
+  local existing
+  [[ -d "$root" ]] || return 0
+  key="$(CDPATH= cd -- "$root" && pwd -P)"
+  for existing in "${SCAN_KEYS[@]}"; do
+    [[ "$existing" == "$key" ]] && return 0
+  done
+  SCAN_KEYS+=("$key")
+  SCAN_ROOTS+=("$root")
+  SCAN_LABELS+=("$label")
+}
+
+add_hook_scan_root "$COMPANY_ROOT" company-root
+for expected_dir in "${EXPECTED_DIRS[@]}"; do
+  [[ "$expected_dir" == "." ]] && continue
+  add_hook_scan_root "$WORKSPACE_ROOT/$expected_dir" "$expected_dir"
+done
+while IFS= read -r git_marker; do
+  repo_root=${git_marker%/.git}
+  [[ "$repo_root" == "$WORKSPACE_ROOT" ]] && continue
+  relative_root=${repo_root#"$WORKSPACE_ROOT"/}
+  [[ "$relative_root" == "$repo_root" ]] && relative_root=$repo_root
+  add_hook_scan_root "$repo_root" "git:$relative_root"
+done < <(discover_repository_roots)
+
+for index in "${!SCAN_ROOTS[@]}"; do
+  while IFS= read -r finding; do
+    [[ -n "$finding" ]] && record_failure "$finding"
+  done < <(project_hook_duplicate_findings "${SCAN_ROOTS[$index]}" "${SCAN_LABELS[$index]}")
+done
+
+if [[ ! -f "$SCRIPT_DIR/tests/project_hook_duplicate_scan_test.sh" ]]; then
+  record_failure "project-local Hook duplicate scanner regression test is missing"
+elif ! bash "$SCRIPT_DIR/tests/project_hook_duplicate_scan_test.sh" >/dev/null; then
+  record_failure "project-local Hook duplicate scanner regression test failed"
+fi
+
 if [[ $ERROR_COUNT -ne 0 ]]; then
   printf 'Instruction drift check failed with %s error(s).\n' "$ERROR_COUNT" >&2
   exit 1
 fi
 
 printf 'PASS: %s instruction pairs match the canonical templates.\n' "$EXPECTED_COUNT"
+printf 'PASS: project-local Hook duplicates are absent from %s declared instruction and discovered Git roots.\n' "${#SCAN_ROOTS[@]}"
+printf 'PASS: project-local Hook duplicate scanner regression cases passed.\n'
