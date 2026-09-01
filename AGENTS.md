@@ -2,19 +2,17 @@
 
 ## 動作前 5 秒自檢
 
-執行下列動作前先停一拍確認授權範圍。每條都對應重複踩過的雷。
+先確認本次目標、工作目錄與已獲授權的操作。
+授權判準共用 `~/.codex/references/workflow_safety.md`。
+已確認的提交、合併或收尾授權不因跨回合失效。
+Skill 自動啟動與單純肯定 review 結果不構成合併授權。
 
-- push main / merge to main — 需使用者明說 `merge` 或 `push main`，或走 `/game-stop`（該 command 即配對 commit + push + merge + cleanup 全程授權）；單獨的 `ok`、`commit`、`完成了` 都不算
-- 刪 remote feat branch — 需使用者明說「刪 remote」，或 `/game-stop`、`/game-clear`（帶 `--keep-remote` 除外）
-- worktree 內啟 Metro — 不行，symlinked node_modules 在 worktree 跑 Metro 必爆；Metro 只跑主 git path。見「Port 協作規範」
-- `git stash` 使用者既有的 uncommitted 改動 — 不行；改 wip commit 或停下問
-- worktree 內 `npm ci` / `npm install` / 複製 node_modules — 不行，symlink 才合規；唯一例外是主題本身動 `package.json`。見「Worktree 使用慣例」
-- 修改 `~/.codex/config.toml` / `~/.codex/hooks/` / `~/.codex/agents/` / `~/.agents/skills/` — 預設不行。唯一例外：正式 plan 流程已列出改動，且使用者明示同意；commit 加 `self-modification` 標籤
-- 主 git 路徑下修改 `product/<產品>/no[34567]_*` 任一檔 — 不行，必須先在 worktree 內；`no1`、`no2`、`no99` 屬頂層 Product git，hook 不機械攔截但仍守全員 worktree。見「Worktree 使用慣例」
-- 修改 impl UI 檔（`src/screens/**`、`src/components/**`、`src/theme/**`、`src/constants/theme.ts`）— 必須先讀取對應 design 檔，hook 會擋。見「Design-Impl 對齊」
-- `/game-over` / `/game-clear` dry-run / 跨 git 盤點 / 多 worktree 清理 — 不分批給結果。見「盤點任務協作節奏」
-
-完整規則見全域「跨機 git 協作規範」「修改流程規範」與本檔「多產品多層 git 協作規範」「動工前置」「Worktree 使用慣例」「Port 協作規範」。本段只是濃縮自檢。
+- **產品修改：** 先完成動工前置。在本次涉及層的 worktree 修改，主 Git 保持乾淨 main。
+- **使用者既有成果：** 不 stash 或丟棄既有未提交修改。工作位置錯誤依共同政策保全並移轉。
+- **控制工具維護：** 依控制 repo 的 README 建立隔離審閱環境。不套用產品流程，不直接寫入正式設定。原生安全核准仍有效。
+- **依賴與執行環境：** node_modules 與 Metro、build、simulator 分別依「Worktree 使用慣例」及「Port 協作規範」。不因完成修改自行啟動。
+- **Impl UI：** 修改前讀取同模組對應 design 檔。範圍見「Design-Impl 對齊」。
+- **跨 Git 盤點與清理：** 依「盤點任務協作節奏」一次收齊本次範圍。`--keep-remote` 等限制持續有效。
 
 ## 頂層目錄結構
 
@@ -87,24 +85,32 @@ ai-company/
 
 ## 動工前置
 
-凡動註冊產品的 spec / design / impl / quality / release 路徑，首次修改前四步全做完：
+已確認目標屬於 ai-company 產品時，首次修改前完成四步。
+其他任務不因位置或一般關鍵字套用這套產品前置。
 
-1. **跑 decision_framework_router 答上游四問**（屬哪個產品 / 哪一層 / 哪個 module / 需求根因與 Product Map 對應項存在嗎）
-2. **依四問結果確認要動的層**——列出 Quality owner、Quality 影響與 Debug 能力影響；單層或跨多層都明確列出
-3. **實際要修改的層各自 `git worktree add` 建同名 feat branch**——名稱沿用 plan 內已定。跨層完全一致並同步建立；Quality 影響為 `none` 時不開 Quality worktree
-4. **動工前最後檢查 cwd**——`pwd` 在 `~/Doc/ai-company-worktrees/<topic>/<layer>-<module-kebab>` 下、`git branch --show-current` 是 `feat/<topic>` 不是 main
+1. **確認產品決策：** 依 `decision_framework_router` 確認產品、層、模組，以及需求根因與 Product Map 對應。
+2. **列出影響範圍：** 確認實際修改的 Git、Quality owner、Quality 影響與 Debug 能力影響。沿用本任務已完成且仍適用的判斷。
+3. **建立隔離工作環境：** 完成全域同步要求後，對實際修改的層建立同名 `feat/<topic>` worktree。名稱沿用 plan。未涉及的層不建立。
+4. **核對工作位置：** 確認 cwd、Git 根目錄及目前分支。再以主 Git 的 `git worktree list --porcelain` 核對歸屬，不只看目錄名稱。
 
-「已知道要改哪個檔」「只是小改」「先動再說」都不是跳步理由；跳過事後必須 `git reset --hard` 重開，不如一開始做對。框架的價值是確認層沒選錯；同名同步建立的價值是 commit 配對與 merge 才能對齊。
+發現漏了前置或改錯位置時，停止該位置的新寫入。
+依共同安全政策保全 staged、unstaged、untracked 及二進位差異，再把本次修改移入正確 worktree。
+驗證完整承接前保留來源。
+無法區分其他人的改動時不整檔還原。
+流程錯誤不得以 `git reset --hard` 或廣域清理補救。
 
 ## Worktree 使用慣例
 
-主 git 永遠停在乾淨 main。任何主題改動一律 `git worktree add` 隔離，不在主 git 開 feat branch，無例外（含 hot-fix、一次性小改、無並行時）。理由：並行 session 動同產品時，任一 session 在主 git 開 branch，另一 session 的 merge 就撞牆；worktree 是秒級操作、代價極低。
+公司 Git 與產品各層 Git 的主題修改使用 worktree 隔離。
+主 Git 保持乾淨 main，供同步與已授權的合併使用。
+小改、hot-fix 與歷史檔案整理也遵守同一規則，避免並行任務互相切換分支。
 
 ### 目錄與命名
 
 - worktree 集中在 `~/Doc/ai-company-worktrees/<topic>/`，topic 使用 kebab-case
 - module 層 git 的末層目錄使用 `<layer>-<module-kebab>`，例如 `spec-no2-accounting-app`
 - 頂層 Product git 的末層目錄使用 `product-<product-slug>`，例如 `product-susugigi`
+- ai-company 根 Git 的末層目錄使用 `company`
 - hook 仍使用末層目錄名協助定位。
 - 產品身分以註冊資料與所屬主 Git 的 worktree 清單為準。
 - 末層目錄改名須同步 `multi-tier-sync-guard.sh` 與 `branch-pairing-guard.sh` 的反查正則。
@@ -115,29 +121,27 @@ ai-company/
 
 需要 node_modules 的 worktree 強制 symlink 主 git 那份（`ln -s <主 git node_modules 絕對路徑> ./node_modules`），禁止各自 `npm ci` / `npm install`——單份約 1.9 GB，多 worktree 各一份會爆硬碟；worktree 與主 git 本來就是共用精神。**唯一例外：** 主題本身要動 `package.json` / lock 檔——動工前先說明、獨立 npm ci、收工立刻刪那份 node_modules 並 recreate symlink。
 
-### 動作層面流程
+### 修改與收尾
 
-**開工**——對每個要動的層 git，各層同步建立、branch 名相同：
+對本次涉及的 Git 建立同名主題分支。
+公司根 Git 與 Product Git 的末層目錄沿用前節命名。
 
-```
+```bash
 git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<module-kebab> -b feat/<topic> main
 ```
 
-**改檔 + 靜態檢查**（lint / tsc / spec-term-audit）全在 worktree 內。
+修改與相關檢查都在 worktree 內完成。
+預設保留未提交差異供 review。
+驗證只修復本次相關問題，不以專案所有既存錯誤歸零為條件。
 
-**commit + push：** `cd <worktree>` → `git add` + `git commit` + `git push -u origin feat/<topic>`；各層各自 commit，subject + body 完全相同（見「多產品多層 git 協作規範」）。
+提交、推送、合併與刪除依共同授權政策判斷。
+`game-stop` 的執行順序由其 workflow 持有，支援單一 Git 與配對多層 Git。
+單獨提交或合併時也保留相同安全條件。
 
-**merge to main**——各層各自配對執行，主 git 全程停在 main、無 checkout：
-
-1. 確認 worktree 已 push feat——這一步是「remote 是唯一真相」的安全點
-2. `git -C <該層主 git> merge --no-ff feat/<topic>`（worktree 與主 git 共享 `.git/refs`，local feat 與 origin/feat 同 hash，免 fetch）
-3. `git -C <該層主 git> push`
-
-**收尾：** `git -C <主 git> worktree remove <worktree 路徑>` + `git -C <主 git> branch -d feat/<topic>`。
-
-### 唯一例外（極窄）
-
-純歷史性檔案整理（修 `.gitignore`、錯字單 commit），且此刻無其他 session 動同產品——可在主 git 直接動。除此無例外。
+- 各層提交 subject 與 body 完全相同。未推送成功的主題不進入合併。
+- 主 Git 必須乾淨且對齊遠端。各層使用 `--no-ff` 合併並推送 main。
+- 只清理已完成且屬於本次授權範圍的 worktree、分支與 launch 設定。
+- 備份、推送或合併失敗時停止依賴它的刪除。不丟棄尚未保全的成果。
 
 ## Design-Impl 對齊
 
@@ -197,6 +201,6 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 - dirty 偵測不依賴 worktree 所在目錄。
 - 空殼目錄清理仍只認活躍 worktree 根。
 
-**請示節奏：** 全部訊號收齊、建議列完，才集中請示一次，不邊掃邊問；不可逆操作（worktree remove、branch delete、merge to main）歸入請示清單而非當下執行。
+**請示節奏：** 先收齊範圍內的訊號與具體動作清單。已有相同範圍的授權時沿用，不重設確認關卡。範圍改變、發現新損失或缺少授權時，完成不受影響的準備後集中請示。單純盤點不構成刪除或合併授權。判準依共同安全政策。
 
 回報結構——三件套、禁止降級指代、精簡可掃描——沿用全域 `~/.codex/AGENTS.md`「對話回報訊息規範」，不在此重述；唯逐欄比對更清楚時可用表格。
