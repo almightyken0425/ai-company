@@ -110,6 +110,7 @@ ai-company/
 - Hook 執行檔只由全域控制層維護。專案不另存 `.codex` 或 `.claude` Hook。
 - 產品、module 與 layer 由 registry、layer manifest、Git remote 及 common dir 解析。需要區分 main 與 worktree instance 時再核對實體 repo root。
 - 公司、Product 與 module 主 checkout 的 Edit、Write、apply patch 及可辨識命令寫入會被阻擋。linked worktree 正常放行。產品歸屬不唯一時不猜測產品，已確認的正式主 checkout 仍受保護。
+- 工具診斷檔清理有有限例外。單一直接 `rm` 可刪除主 checkout 根目錄未被 index 或 HEAD 追蹤的 `firepit-log.txt`，須為目前使用者持有的一般檔案。完整條件由 `~/.codex/references/hook_decision_engine.md` 持有。放行仍保留原生授權審查。
 - worktree 改名不需修改 Hook 正則。新增產品、module 或 layer 時只更新對應註冊來源與一致性測試。
 - 同主題跨多層 git 用完全相同的 branch 名稱
 - 開新 worktree 後、啟一般 server 前，為它 append launch.json entry（見「Port 協作規範」）。test-ios 的 QA Metro 使用下述場次私有登記。
