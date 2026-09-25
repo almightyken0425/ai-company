@@ -112,7 +112,7 @@ ai-company/
 - 公司、Product 與 module 主 checkout 的 Edit、Write、apply patch 及可辨識命令寫入會被阻擋。linked worktree 正常放行。產品歸屬不唯一時不猜測產品，已確認的正式主 checkout 仍受保護。
 - worktree 改名不需修改 Hook 正則。新增產品、module 或 layer 時只更新對應註冊來源與一致性測試。
 - 同主題跨多層 git 用完全相同的 branch 名稱
-- 開新 worktree 後、啟 server 前，為它 append launch.json entry（見「Port 協作規範」），否則 verify 看到的是原 git 內容
+- 開新 worktree 後、啟一般 server 前，為它 append launch.json entry（見「Port 協作規範」）。test-ios 的 QA Metro 使用下述場次私有登記。
 
 ### node_modules 一律 symlink
 
@@ -151,13 +151,13 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 
 ## Port 協作規範
 
-多 worktree 並行跑 server 會撞 port。解法：集中註冊表使用 `~/Doc/ai-company/.codex/launch.json`，所有 server 啟動前必查表、不自選 port。
+多 worktree 並行跑 server 會撞 port。一般 server 使用集中註冊表 `~/Doc/ai-company/.codex/launch.json`，啟動前必查表、不自選 port。test-ios 的 QA Metro 使用場次私有登記，規則見下述重量資源小節。
 
 ### 註冊表與硬規則
 
 每個 worktree 一條 entry，欄位：`name`（人類可讀標籤）、`directory`（相對 ai-company 根目錄。`directory` 與 `runtimeArgs` 內任何路徑都**禁止絕對路徑**——launch.json 跨機共享，絕對路徑只對單機有效，混入會讓另一台機看到無法解析的路徑）、`port`（design canvas 用，base 8765 遞增）、`metroPort`（base 8081 遞增。純佔位防手動 hardcode 衝突，`/test-ios` 不讀它、統一跑 8081——app 嵌入的 bundler URL 即 8081，切 worktree = 換 Metro 來源、不換 port）。
 
-- `git worktree add` 完成後、啟任何 server 前，**必須** append entry。未加不許啟 server。分配 port = 現有最大 +1
+- `git worktree add` 完成後、啟一般 server 前，**必須** append entry。未加不許啟 server。分配 port = 現有最大 +1。只供 test-ios 取用候選的 worktree 不建立持久 server entry。
 - `git worktree remove` 後**同步移除** entry。`/game-stop` 自動處理，手動 remove 自己記得
 - 回報訊息「驗證位置」的 server URL 必須對齊 entry port（銜接`~/.codex/references/reporting_policy.md`），不允許報無對應的 port
 - server guard 以 registry 與 Git 身分確認產品範圍，再比對同一實體 repo instance 及其相對子目錄。HTTP server 只使用該 entry 的 `port`，Metro 只使用 `metroPort`。同類 port 重複登記、instance 不符或 port 不符都不放行
@@ -171,6 +171,8 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 原獨立節「iOS 自驗策略」已併入本節，hook 訊息引該名時指的就是這裡。
 
 - simulator 驗證由 `/test-ios` 一鍵執行。另一入口是 `test-run` 確認範圍後委派 `test-ios`。切 Metro、build、還原與排隊規則見 `~/.agents/skills/test-ios/SKILL.md`
+- QA Metro 由鎖定的 Control helper 在本場次私有暫存目錄建立 `launch.json`。先核對主 checkout 的候選 commit、tree、乾淨狀態與 `8081` 空閒，再核對相對路徑登記及 server policy。不修改公司主目錄的持久登記，也不放寬一般主目錄寫入保護。
+- 場次正常結束或失敗時清除私有登記，回到 Metro 未啟動的狀態。既有 owner 尚未結束時停止啟動，不終止其他程序。完整契約由 `~/.codex/references/quality/ios_execution.md` 與鎖定 Quality runbook 持有。
 - 上述兩種入口以外，Codex 不主動啟、不主動切 Metro、不動 simulator。Metro 維持單一 8081。低 RAM 環境依序執行
 - **禁止 worktree 內 build**（`npm run ios`、`xcodebuild`、`pod install`）——各自 build 會在 DerivedData 累積 cache 爆磁碟。build 集中主 git、由 `/test-ios` 觸發。全域 iOS worktree build guard 在 PreToolUse 機械攔截
 - 完成改動、預期使用者想上 simulator 看時，回報「驗證位置」段引導打 `/test-ios`，依 `~/.codex/references/reporting_policy.md` 回報
