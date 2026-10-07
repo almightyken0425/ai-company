@@ -41,6 +41,30 @@
       ],
       "port": 8767,
       "metroPort": 8083
+    },
+    {
+      "name": "igotthis-readiness-review",
+      "directory": "../ai-company-worktrees/igotthis-issue-type-behavior/impl-no1-issue-system",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "../ai-company-worktrees/igotthis-issue-type-behavior/impl-no1-issue-system/packages/server/dist/index.js"
+      ],
+      "port": 8771,
+      "metroPort": 8084
+    },
+    {
+      "name": "igotthis-detail-redesign",
+      "directory": "../ai-company-worktrees/igotthis-issue-type-behavior/design-no1-issue-system",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8772",
+        "--directory",
+        "../ai-company-worktrees/igotthis-issue-type-behavior/design-no1-issue-system/project"
+      ],
+      "port": 8772,
+      "metroPort": 8085
     }
   ]
 }
