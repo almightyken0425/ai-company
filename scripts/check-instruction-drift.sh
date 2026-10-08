@@ -97,13 +97,12 @@ EXPECTED_DIRS=(
   "product/susugigi/no5_product_development/no2_accounting_app"
   "product/susugigi/no5_product_development/no3_cloud_functions"
   "product/susugigi/no5_product_development/no4_support_site"
-  "product/susugigi/no6_product_quality/no2_accounting_app"
   "product/susugigi/no7_product_release/no2_accounting_app"
   "product/underground-remake"
   "product/underground-remake/no3_product_specs/no1_concept"
 )
 
-EXPECTED_COUNT=33
+EXPECTED_COUNT=32
 if [[ ${#EXPECTED_DIRS[@]} -ne $EXPECTED_COUNT ]]; then
   printf 'FAIL: internal expected directory count is %s, expected %s\n' \
     "${#EXPECTED_DIRS[@]}" "$EXPECTED_COUNT" >&2

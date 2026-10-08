@@ -76,7 +76,7 @@ ai-company/
 - **Spec 層職責邊界：** spec 文件的 MVC 分層政策與跨層禁止項由 `~/.codex/references/spec/` 承載，寫作及唯讀審查使用 `code-spec`。各 spec module git 的 AGENTS.md 為入口
 - **已知邊界：** 本機 hook 僅提示層，無法保證遠端 merge 真的配對發生。要硬保證走 CI 或遠端 pre-merge 檢查
 - **測試責任分工：** Quality git 維護測試定義、能力需求與核心標記。執行證據只留目前 session。Release git 維護候選版本 manifest
-- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`。檢查器核對 33 組 Claude 薄入口及同目錄 AGENTS.md 是否存在，並掃描宣告的 instruction roots 與實際 Git roots，確認沒有專案層 Hook 設定或執行檔
+- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`。檢查器核對 32 組 Claude 薄入口及同目錄 AGENTS.md 是否存在，並掃描宣告的 instruction roots 與實際 Git roots，確認沒有專案層 Hook 設定或執行檔
 
 ## 動工前置
 
@@ -171,10 +171,10 @@ git -C <該層主 git> worktree add ~/Doc/ai-company-worktrees/<topic>/<layer>-<
 
 原獨立節「iOS 自驗策略」已併入本節，hook 訊息引該名時指的就是這裡。
 
-- simulator 驗證由 `/test-ios` 一鍵執行。另一入口是 `test-run` 確認範圍後委派 `test-ios`。切 Metro、build、還原與排隊規則見 `~/.agents/skills/test-ios/SKILL.md`
+- 使用者要求 simulator 驗證時由 `/test-ios` 核對必要前置。切 Metro、build、還原與排隊規則見 `~/.agents/skills/test-ios/SKILL.md`。SuSuGiGi 舊 QA 適配包已封存，相依場次暫停。
 - QA Metro 由鎖定的 Control helper 在本場次私有暫存目錄建立 `launch.json`。先核對主 checkout 的候選 commit、tree、乾淨狀態與 `8081` 空閒，再核對相對路徑登記及 server policy。不修改公司主目錄的持久登記，也不放寬一般主目錄寫入保護。
 - 場次正常結束或失敗時清除私有登記，回到 Metro 未啟動的狀態。既有 owner 尚未結束時停止啟動，不終止其他程序。完整契約由 `~/.codex/references/quality/ios_execution.md` 與鎖定 Quality runbook 持有。
-- 上述兩種入口以外，Codex 不主動啟、不主動切 Metro、不動 simulator。Metro 維持單一 8081。低 RAM 環境依序執行
+- 未符合上述啟動條件時，Codex 不主動啟、不主動切 Metro、不動 simulator。Metro 維持單一 8081。低 RAM 環境依序執行
 - **禁止 worktree 內 build**（`npm run ios`、`xcodebuild`、`pod install`）——各自 build 會在 DerivedData 累積 cache 爆磁碟。build 集中主 git、由 `/test-ios` 觸發。全域 iOS worktree build guard 在 PreToolUse 機械攔截
 - 完成改動、預期使用者想上 simulator 看時，回報「驗證位置」段引導打 `/test-ios`，依 `~/.codex/references/reporting_policy.md` 回報
 
