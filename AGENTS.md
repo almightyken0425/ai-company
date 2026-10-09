@@ -76,7 +76,10 @@ ai-company/
 - **Spec 層職責邊界：** spec 文件的 MVC 分層政策與跨層禁止項由 `~/.codex/references/spec/` 承載，寫作及唯讀審查使用 `code-spec`。各 spec module git 的 AGENTS.md 為入口
 - **已知邊界：** 本機 hook 僅提示層，無法保證遠端 merge 真的配對發生。要硬保證走 CI 或遠端 pre-merge 檢查
 - **測試責任分工：** Quality git 維護測試定義、能力需求與核心標記。執行證據只留目前 session。Release git 維護候選版本 manifest
-- **規則漂移檢查：** 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`。檢查器核對 32 組 Claude 薄入口及同目錄 AGENTS.md 是否存在，並掃描宣告的 instruction roots 與實際 Git roots，確認沒有專案層 Hook 設定或執行檔
+- **規則漂移檢查：**
+    - 修改任何 `AGENTS.md` 或 `CLAUDE.md` 後，執行 `scripts/check-instruction-drift.sh`。
+    - 檢查器依宣告的目錄清單核對 Claude 薄入口與同目錄 `AGENTS.md`。
+    - 同時掃描宣告的 instruction roots 與實際 Git roots，確認沒有專案層 Hook 設定或執行檔。
 
 ## 動工前置
 
